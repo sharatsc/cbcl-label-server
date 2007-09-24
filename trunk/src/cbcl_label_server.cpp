@@ -101,7 +101,7 @@ int main(int argc,char* argv[])
   int    out_port             = NV2_LABEL_READER_PORT;
   int    interval             = 1;
   double threshold            = 0;
-  int    memory               = 1;
+  int    memory               = 0;
 
   /*get overriding options*/
   static struct option long_options[]= {
@@ -224,8 +224,6 @@ int main(int argc,char* argv[])
             }
         }
         sort(out.begin(),out.end(),comp_func);
-		for(int i=0;i<out.size();i++)
-			cout<<out[i].lbl<<":"<<out[i].score<<endl;
         //----------------------------------------------------
         //write the labels
         //---------------------------------------------------
