@@ -33,7 +33,11 @@ typedef struct __tag_out
 public:
   double score; 
   string lbl;
+  double conf;
+  double rw;
+  int ry;
 }output_t;
+
 
 class compare_outputs:binary_function<output_t,output_t,bool>
 {
@@ -215,17 +219,19 @@ int main(int argc,char* argv[])
       for(int k=0;k<nclass;k++)
       {
 	  out[k].lbl   = model.labels[k];
-	  out[k].score = exp(scores[k]);
-	  sumvals = sumvals + out[k].score;
-	  if (out[k].score>maxval) {
-	    maxval = out[k].score;
+	  out[k].rw = scores[k];
+	  out[k].ry = (scores[k]>0 ? 1 : -1);
+	  out[k].conf = exp(scores[k]);
+	  sumvals = sumvals + out[k].conf;
+	  if (out[k].conf>maxval) {
+	    maxval = out[k].conf;
 	    maxindx = k;
 	  }
       }
 
       // Normalize
       for(int k=0;k<nclass;k++)
-	out[k].score = out[k].score/sumvals;
+	out[k].conf = out[k].conf/sumvals;
 
       //out[nclass].lbl  = model.labels[nclass];
       //out[nclass].score= threshold;
@@ -243,11 +249,11 @@ int main(int argc,char* argv[])
       }
       if(output_mode == OUT_TEXT)
       {
-	cout<<"IMAGE-----"<<argv[i]<<":\n";
-	cout<<"CONFIDENCES-----\n";
+	cout<<"IMAGE-----\n"<<argv[i]<<"\n";
+	cout<<"CONFIDENCES-----\n"<<nclass<<"\n";
 	for(int k=0;k<nclass;k++)
-	  cout<<out[k].lbl<<" "<<out[k].score<<"\n";
-	cout<<"CATEGORY-----"<<str_result<<endl;
+	  cout<<out[k].lbl<<"\t"<<out[k].rw<<"\t"<<out[k].ry<<"\t"<<out[k].conf<<"\n";
+	cout<<"CATEGORY-----\n"<<str_result<<endl;
       }
       else if(output_mode == OUT_FILE)
       {

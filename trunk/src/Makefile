@@ -1,20 +1,17 @@
-OPENCV=/usr/local
-FFMPEG=/usr/local
-CFLAGS=-O3 -I$(OPENCV)/include/opencv -L$(FFMPEG)/lib -L$(OPENCV)/lib -I ../NeovisionII/ -I ../inc -I ../ 
-CLIBS=-lhighgui -lcv -lcxcore -lcvaux -lml -lm -ljpeg -lpng -ltiff -lavformat -lavutil -lavcodec
+OPENCV=/usr/local/pkg/opencv-1.0.0
+FFMPEG=/usr/local/pkg/ffmpeg-0.4.9-20060801
+CFLAGS=-O3 -I$(OPENCV)/include/opencv -L$(FFMPEG) -L$(OPENCV)/lib -I ../NeovisionII/ -I ../inc -I ../ 
+CLIBS=-lhighgui -lcv -lcxcore -lcvaux -lml -lm -ljpeg -lpng 
 OBJS_SERVER=image.o filter.o operations.o cbcl_model_internal.o rule.o svm_model.o cbcl_label_server.o nv2_common.o nv2_label_server.o
 OBJS_MODEL=image.o filter.o operations.o cbcl_model_internal.o rule.o svm_model.o cbcl_test.o 
-OBJS_MODEL2=image.o filter.o operations.o cbcl_model_internal.o rule.o svm_model.o cbcl_test_matlab.o 
 CC=g++
 
-TARGETS= cbcl_model cbcl_model_matlab
+TARGETS= cbcl_model 
 default:
 	make $(TARGETS)
 
 cbcl_model: $(OBJS_MODEL)
 	$(CC) $(CFLAGS) -o cbcl_model $(OBJS_MODEL) $(CLIBS)
-cbcl_model_matlab: $(OBJS_MODEL2)
-	$(CC) $(CFLAGS) -o cbcl_model_matlab $(OBJS_MODEL2) $(CLIBS)
 cbcl_label_server: $(OBJS_SERVER)
 	$(CC) $(CFLAGS) -o cbcl_label_server $(OBJS_SERVER) $(CLIBS)
 image.o : image.cpp 
