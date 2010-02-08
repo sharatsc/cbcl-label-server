@@ -2,6 +2,7 @@
 *  
 *
 * sharat@mit.edu
+* Modified by Tony Ezzat tonebone@mit.edu (3/17/08) to undo maxfilter fix
 */
 #include "image.h"
 #include "filter.h"
@@ -29,6 +30,7 @@ image xcorr2d::operator()(const image& img,const filter& filt)
   image  tmp_result(szimg.height-szfilt.height+1,szimg.width-szfilt.width+1);
   image  result(szimg.height,szimg.width);
   cvMatchTemplate(img,filt,tmp_result,CV_TM_CCORR_NORMED);
+  /* cvCopyMakeBorder(tmp_result,result,cvPoint((szfilt.width+1)/2,(szfilt.height+1)/2),IPL_BORDER_CONSTANT);*/
   cvCopyMakeBorder(tmp_result,result,cvPoint(szfilt.width/2-1,szfilt.height/2-1),IPL_BORDER_CONSTANT);
   return abs(result);
 }
@@ -57,11 +59,13 @@ image hmax::operator()(const image& img,int pool,int shift)
       for(j=0,x=0;j<sz.width;j+=shift,x++)
 	{
 	  max_val = -1e6;
-	  for(k=-pool/2;k<pool/2;k++)
+	  /* for(k=-pool/2;k<pool/2;k++)*/
+	    for(k=0;k<pool;k++)
 	    {
 	      u = (i+k);
 	      if(u <0 || u >=sz.height) continue;
-	    for(l=-pool/2;l<pool/2;l++)
+	      /* for(l=-pool/2;l<pool/2;l++)*/
+	    for(l=0;l<pool;l++)
 	      {
 		v = (l+j);
 		if( v <0 || v >=sz.width) continue;

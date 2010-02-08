@@ -30,6 +30,9 @@ typedef struct __tag_out
 public:
   double score; 
   string lbl;
+  double conf;
+  double rw;
+  double ry;
 }output_t;
 
 class compare_outputs:binary_function<output_t,output_t,bool>
