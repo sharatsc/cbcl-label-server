@@ -22,6 +22,7 @@ using namespace std;
 
 #define DO_DEBUG 0
 
+#if 0
 void load_filter(vector<filter>& filt)
 {
   int ncount;
@@ -31,14 +32,27 @@ void load_filter(vector<filter>& filt)
   for(int i=0;i<ncount;i++)
     ssin>>filt[i];
 }
+#else
+void load_filter(const char* filename,vector<filter>& filt)
+{
+  int ncount;
+  ifstream fin;
+  fin.open(filename,ifstream::in);
+  fin>>ncount;
+  filt.clear();filt.resize(ncount);
+  for(int i=0;i<ncount;i++)
+    fin>>filt[i];
+  fin.close();
+}
+#endif
 
 void init_opts(model_options* opt)
 {
-  /*{0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7};*/
-  int start_stop[]={0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7};
+  /*{0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7}*/
+  int start_stop[]= {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
   int space_sum[] ={8,10,12,14,16,18,20,22};
   opt->nbands = 8;
-  opt->nscales= 8;
+  opt->nscales= 16;
   opt->ndirs  = 4;
   for(int i=0;i<opt->nbands;i++)
     {
@@ -85,7 +99,7 @@ void mexFunction(int nlhs,mxArray* plhs[],int nrhs,const mxArray* prhs[])
   model_options    opt;
   /*initialize*/
   init_opts(&opt);
-  load_filter(fb);
+  load_filter("gabor_bank.txt",fb);
 
   /*get buffer*/
   if(nrhs!=1 || nlhs!= 1)

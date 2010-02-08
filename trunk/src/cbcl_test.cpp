@@ -2,6 +2,11 @@
 *  
 *
 * sharat@mit.edu
+*
+* Modified by Tony Ezzat tonebone@mit.edu (3/18/08):
+*  - confidences output
+*  - filter options are now compatible with new gabor filter set
+*
 */
 #include "image.h"
 #include "filter.h"
@@ -53,10 +58,12 @@ void load_filter(const char* filename,vector<filter>& filt)
 
 void init_opts(model_options* opt)
 {
-  int start_stop[]={0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7};
+  /* int start_stop[]={0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7};*/
+  /* Tony Ezzat change */
+  int start_stop[]= {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
   int space_sum[] ={8,10,12,14,16,18,20,22};
   opt->nbands = 8;
-  opt->nscales= 8;
+  opt->nscales= 16;
   opt->ndirs  = 4;
   for(int i=0;i<opt->nbands;i++)
     {
@@ -180,56 +187,67 @@ int main(int argc,char* argv[])
       if(input_mode == IN_IMG)
       {
 	img = imread(argv[i]);
+
+	/* let's resize */
+	CvSize sz = img.dim();
+	img = imresize(img, sz.height/2, sz.width/2);
       }
       CvSize sz = img.dim();
+      long start_time = clock();
       s1_baseline(img,fb,opt,s1);
       c1_baseline(s1,opt,c1);
-#if 0      
-      int _size_c1 = c1.size();
-      ofstream fout("c1.txt");
-      cout<<"Size:"<<_size_c1<<endl;
-      for(int _i=0;_i<_size_c1;_i++)
-      {
-	fout<<c1[_i]<<endl<<endl;
-      }
-      fout.close();
-#endif
-
       c2_baseline(c1,s2,patches,opt,c2);
+      long end_time   = clock();
+      //printf("Time:%f\n",(double)(end_time-start_time)/CLOCKS_PER_SEC);
 #if DO_DEBUG
       for(int _i=0;_i<c2.size();_i++)
         cout<<c2[_i]<<endl;
 #endif
+
+      // Eval SVM 
       model.classify(c2,scores);
-      for(int l=0;l<nclass;l++)
-	{
-	  cout<<scores[l]<<" ";
-	}
-      cout<<endl;
-
-
+      
+      // Compute confidences
+      double sumvals = 0;
+      double maxval = 0; 
+      int maxindx = 0;
+ 
       for(int k=0;k<nclass;k++)
       {
 	  out[k].lbl   = model.labels[k];
-	  out[k].score = scores[k];
+	  out[k].score = exp(scores[k]);
+	  sumvals = sumvals + out[k].score;
+	  if (out[k].score>maxval) {
+	    maxval = out[k].score;
+	    maxindx = k;
+	  }
       }
-      out[nclass].lbl  = model.labels[nclass];
-      out[nclass].score= threshold;
 
+      // Normalize
+      for(int k=0;k<nclass;k++)
+	out[k].score = out[k].score/sumvals;
 
-      sort(out.begin(),out.end(),comp);
-      string str_result = out[nclass].lbl+","+out[nclass-1].lbl;
-
+      //out[nclass].lbl  = model.labels[nclass];
+      //out[nclass].score= threshold;
+      
+      //sort(out.begin(),out.end(),comp);
+      
+      
+      string str_result = out[maxindx].lbl;
 
       if(disp_mode   == DISP_ON)
       {
-   	  cvPutText(img,str_result.c_str(),cvPoint(1,10),&font,CV_RGB(255,255,255));
-	  cvShowImage("result",img);
-          cvWaitKey(delay);
+		cvPutText(img,str_result.c_str(),cvPoint(1,10),&font,CV_RGB(255,255,255));
+		cvShowImage("result",img);
+        cvWaitKey(delay);
       }
       if(output_mode == OUT_TEXT)
       {
-	cout<<argv[i]<<":"<<str_result<<endl;
+	cout<<"IMAGE-----"<<argv[i]<<":\n";
+	cout<<"CONFIDENCES-----\n";
+	for(int k=0;k<nclass;k++)
+	  cout<<out[k].lbl<<" "<<out[k].score<<"\n";
+	cout<<"CATEGORY-----"<<str_result<<endl;
       }
       else if(output_mode == OUT_FILE)
       {

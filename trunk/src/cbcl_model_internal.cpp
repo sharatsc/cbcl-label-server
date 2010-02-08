@@ -2,10 +2,12 @@
 *  
 *
 * sharat@mit.edu
+* Modified by Tony Ezzat tonebone@mit.edu (3/18/08):
+*  - C2 now computes Windowed Patch Distance
 */
 #include "cbcl_model_internal.h"
 #include <pthread.h>
-#define THREAD 1
+#define THREAD 0
 #define NUMT   64
 
 typedef struct
@@ -173,11 +175,12 @@ void* do_c2(void* data_ptr)
   vector<double>& c2           = *(data->pc2);
   const model_options& opts    = *(data->popts);
   double  maxval                 = 0;
+  double  minval                 = 0;
   double  patch_norm             = 0;
   double  max_norm               = 0;
   for(int i=data->start_idx;i<=data->end_idx;i++)
   {
-      c2[i]      = 0;
+      c2[i]      = 10e6;
       maxval     = 0;
       for(int b=0;b<opts.nbands;b++)
       {
@@ -190,15 +193,20 @@ void* do_c2(void* data_ptr)
 	  }
 	double sigma        = sqrt(patch_norm+EPS)/3;
 	/*convert distances to 0-1*/
-	CvSize sz           = res.dim();
-	for(int y=0;y<sz.height;y++)
-	  for(int x=0;x<sz.width;x++)
-	    res[y][x] = exp(-res[y][x]/(2*sigma*sigma));
+	//	CvSize sz           = res.dim();
+	//for(int y=0;y<sz.height;y++)
+	//  for(int x=0;x<sz.width;x++)
+	//    res[y][x] = exp(-res[y][x]/(2*sigma*sigma));
 	s2[i*opts.nbands+b] = res;
-        maxval              = res.max();
-        if(c2[i]<maxval)
+        //maxval              = res.max();
+        //if(c2[i]<maxval)
+	//  {
+	//    c2[i]    = maxval; 
+	//  }
+	minval              = res.min();
+	if(c2[i]>minval)
 	  {
-	    c2[i]    = maxval; 
+	    c2[i]    = minval; 
 	  }
       }
   }
